@@ -20,7 +20,30 @@ const thrustPower = 0.3;
 const maxFallSpeed = 10;        
 const rotationSpeed = 0.018;   
 const maxSpeed = 3.6;            
-const roofHeight = 50;         
+const roofHeight = 50;
+let score = 0;
+let survivalTimer = 0;    
+
+// 50 points for every second survived
+setInterval(() => {
+    if (player.alive) {
+        score += 50; 
+        survivalTimer += 1;
+    }
+}, 1000);
+
+
+function displayScore() {
+    // Set font and text style
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+
+    // Draw the text with a white outline
+    ctx.strokeText(`Score: ${score}`, canvas.width - 150, 30);
+    ctx.fillText(`Score: ${score}`, canvas.width - 150, 30);
+}
 
 
 class Player {
@@ -266,7 +289,7 @@ class SwarmEnemy {
     constructor() {
         this.x = Math.random() < 0.5 ? -50 : canvas.width + 50;
         this.y = Math.random() < 0.5 ? -50 : canvas.height + 50;
-        this.width = 40;
+        this.width = 50;
         this.height = 40;
         this.speed = 1;
         this.angle = 0;
@@ -399,8 +422,8 @@ function updateEnemies() {
     const enemiesToRemove = [];
     const bulletsToRemove = [];
 
-    handleMissileCollisions(); // Call missile collision 
-    handleSwarmEnemyRepulsion(); // Call swarm enemy repulsion 
+    handleMissileCollisions(); 
+    handleSwarmEnemyRepulsion(); 
 
     enemies.forEach((enemy, index) => {
         enemy.update();
@@ -414,7 +437,13 @@ function updateEnemies() {
             if (distance < enemy.width / 2 + bullet.radius) {
                 enemy.health -= 1;
                 bulletsToRemove.push(bulletIndex); // Mark bullet for removal
+
                 if (enemy.health <= 0) {
+                    if (enemy instanceof SwarmEnemy) {
+                        score += 100; // 100 points for killing a SwarmEnemy
+                    } else if (enemy instanceof Enemy) {
+                        score += 500; // 200 points for killing a Missile
+                    }
                     enemiesToRemove.push(index); 
                 }
             }
@@ -426,12 +455,12 @@ function updateEnemies() {
         const distance = Math.sqrt(dx * dx + dy * dy);
         if (distance < player.width / 2 + enemy.width / 2) {
             if (enemy instanceof SwarmEnemy || enemy instanceof Enemy) {
-                player.lives -= 1; 
-                enemiesToRemove.push(index); 
+                player.lives -= 1; // Decrement player's life on collision with any enemy
+                enemiesToRemove.push(index); // Remove enemy on collision with player
 
                 if (player.lives <= 0) {
                     player.alive = false;
-                    alert('Game Over');
+                    alert(`Game Over! Final Score: ${score}`); // Show final score when player dies
                 }
             }
         }
@@ -459,8 +488,10 @@ function gameLoop() {
         // Draw hearts to represent player lives
         for (let i = 0; i < 3; i++) {
             const heartImage = (i < player.lives) ? player.fullHeartImage : player.emptyHeartImage;
-            ctx.drawImage(heartImage, 10 + (i * 40), 10, 30, 30); 
+            ctx.drawImage(heartImage, 10 + (i * 40), 10, 30, 30); // Adjust position and size as needed
         }
+
+        displayScore(); 
     }
 
     updateBullets();
