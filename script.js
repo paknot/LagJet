@@ -332,6 +332,32 @@ class SwarmEnemy {
     }
 }
 
+function checkBulletEnemyCollisions() {
+    for (let i = 0; i < enemies.length; i++) {
+        for (let j = 0; j < bullets.length; j++) {
+            const enemy = enemies[i];
+            const bullet = bullets[j];
+
+            // Check if bullet hits the enemy
+            const dx = enemy.x - bullet.x;
+            const dy = enemy.y - bullet.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < enemy.width / 2 + bullet.width / 2) {
+                // Generate blue particles for explosion
+                for (let k = 0; k < 20; k++) { // Adjust particle count as needed
+                    particles.push(new Particle(enemy.x, enemy.y, 'blue'));
+                }
+
+                // Remove bullet and enemy on hit
+                bullets.splice(j, 1);
+                enemies.splice(i, 1);
+                break;
+            }
+        }
+    }
+}
+
 
 // Spawn SwarmEnemies
 setInterval(() => {
@@ -344,7 +370,7 @@ setInterval(() => {
 }, 5000);
 
 // if two missiles colide
-function handleMissileCollisions() {
+function checkMissileCollisions() {
     for (let i = 0; i < enemies.length; i++) {
         for (let j = i + 1; j < enemies.length; j++) {
             if (enemies[i] instanceof Enemy && enemies[j] instanceof Enemy) {
@@ -353,7 +379,16 @@ function handleMissileCollisions() {
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < enemies[i].width / 2 + enemies[j].width / 2) {
-                    // Destroy both missiles 
+                    // Calculate collision point
+                    const collisionX = (enemies[i].x + enemies[j].x) / 2;
+                    const collisionY = (enemies[i].y + enemies[j].y) / 2;
+
+                    // Generate orange particles for explosion
+                    for (let k = 0; k < 20; k++) { // Adjust particle count as needed
+                        particles.push(new Particle(collisionX, collisionY, 'orange'));
+                    }
+
+                    // Destroy both missiles
                     enemies.splice(j, 1);
                     enemies.splice(i, 1);
                     break;
@@ -417,12 +452,58 @@ function handleSwarmEnemyRepulsion() {
 }
 
 
+class Particle {
+    constructor(x, y, color = 'orange') {
+        this.x = x;
+        this.y = y;
+        this.size = Math.random() * 2 + 1; // Random size
+        this.speedX = (Math.random() - 0.5) * 2; // Random horizontal speed
+        this.speedY = (Math.random() - 0.5) * 2; // Random vertical speed
+        this.alpha = 1; // Full opacity initially
+        this.color = color; // Color for the particle
+    }
+
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.alpha -= 0.02; // Fade out
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+    }
+
+    isAlive() {
+        return this.alpha > 0; // Particle is alive as long as it has opacity
+    }
+}
+
+let particles = [];
+
+function updateParticles() {
+    particles = particles.filter(particle => particle.isAlive());
+    particles.forEach(particle => particle.update());
+}
+
+function drawParticles(ctx) {
+    particles.forEach(particle => particle.draw(ctx));
+}
+
+
+
+
 // Update enemies in the game loop
 function updateEnemies() {
     const enemiesToRemove = [];
     const bulletsToRemove = [];
 
-    handleMissileCollisions(); 
+    checkMissileCollisions(); 
     handleSwarmEnemyRepulsion(); 
 
     enemies.forEach((enemy, index) => {
@@ -438,11 +519,16 @@ function updateEnemies() {
                 enemy.health -= 1;
                 bulletsToRemove.push(bulletIndex); // Mark bullet for removal
 
+                // Generate particles when enemy is hit
+                for (let k = 0; k < 20; k++) { // Adjust particle count as needed
+                    particles.push(new Particle(enemy.x, enemy.y, 'blue')); // Use color as needed
+                }
+
                 if (enemy.health <= 0) {
                     if (enemy instanceof SwarmEnemy) {
                         score += 100; // 100 points for killing a SwarmEnemy
                     } else if (enemy instanceof Enemy) {
-                        score += 500; // 200 points for killing a Missile
+                        score += 500; // 500 points for killing a regular enemy
                     }
                     enemiesToRemove.push(index); 
                 }
@@ -476,26 +562,102 @@ function updateEnemies() {
         enemies.splice(enemyIndex - i, 1);
     });
 }
+// Pausing the game
+let isPaused = false;
+let pauseOverlay; // Variable to hold the pause overlay
+
+// Function to show the pause menu
+function showPauseMenu() {
+    if (pauseOverlay) return; // Prevent multiple overlays
+
+    pauseOverlay = document.createElement('div');
+    pauseOverlay.style.position = 'absolute';
+    pauseOverlay.style.top = 0;
+    pauseOverlay.style.left = 0;
+    pauseOverlay.style.width = '100%';
+    pauseOverlay.style.height = '100%';
+    pauseOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    pauseOverlay.style.color = 'white';
+    pauseOverlay.style.display = 'flex';
+    pauseOverlay.style.flexDirection = 'column';
+    pauseOverlay.style.alignItems = 'center';
+    pauseOverlay.style.justifyContent = 'center';
+    pauseOverlay.style.fontSize = '30px';
+    pauseOverlay.innerHTML = `
+        <div id="pause">
+        Game Paused
+        <button id="resume">Continue</button>
+        <button id="restart">Restart</button>
+        </div>
+    `;
+    
+    document.body.appendChild(pauseOverlay);
+
+    // Event listeners for buttons
+    document.getElementById('resume').addEventListener('click', () => {
+        isPaused = false;
+        document.body.removeChild(pauseOverlay);
+        pauseOverlay = null; // Reset the pauseOverlay
+    });
+
+    document.getElementById('restart').addEventListener('click', () => {
+        restartGame();
+        document.body.removeChild(pauseOverlay);
+        pauseOverlay = null; // Reset the pauseOverlay 
+    });
+}
+function restartGame() {
+    // Reset player, score, and any other game variables
+    player = new Player(canvas.width / 2, canvas.height / 2);
+    bullets = [];
+    enemies = [];
+    score = 0;
+    survivalTimer = 0;
+    player.lives = 3; // Reset lives
+    player.alive = true; // Reset player state
+}
+
+// Handle escape key to toggle pause state
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        isPaused = !isPaused; // Toggle pause state
+        if (isPaused) {
+            showPauseMenu();
+        } else if (pauseOverlay) {
+            document.body.removeChild(pauseOverlay); // Remove overlay if it's still there
+            pauseOverlay = null; // Reset the pauseOverlay variable
+        }
+    }
+});
 
 // Game loop
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    if (player.alive) {
-        player.update();
-        player.draw();
+    // First, handle particles
+    updateParticles();
+    drawParticles(ctx);
 
-        // Draw hearts to represent player lives
-        for (let i = 0; i < 3; i++) {
-            const heartImage = (i < player.lives) ? player.fullHeartImage : player.emptyHeartImage;
-            ctx.drawImage(heartImage, 10 + (i * 40), 10, 30, 30); // Adjust position and size as needed
+    // Only update and draw game objects if not paused
+    if (!isPaused) {
+        // Update player and enemies
+        if (player.alive) {
+            player.update();
+            player.draw();
+
+            // Draw hearts to represent player lives
+            for (let i = 0; i < 3; i++) {
+                const heartImage = (i < player.lives) ? player.fullHeartImage : player.emptyHeartImage;
+                ctx.drawImage(heartImage, 10 + (i * 40), 10, 30, 30);
+            }
+
+            // Update bullets and enemies
+            updateBullets();
+            updateEnemies();
         }
 
-        displayScore(); 
+        displayScore(); // Display the score
     }
-
-    updateBullets();
-    updateEnemies();
 
     requestAnimationFrame(gameLoop);
 }

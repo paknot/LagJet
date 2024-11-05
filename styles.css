@@ -13,4 +13,30 @@ body {
     background-position: center;
     background-repeat: no-repeat;
   }
- 
+  #pause {
+    position: fixed; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    background-color: rgba(0, 0, 0, 0.7); 
+    color: white; 
+    border-radius: 10px; 
+    text-align: center; 
+    z-index: 1000; 
+    padding: 10px 20px;
+}
+
+#pause button {
+    display: block; 
+    margin: 10px 23%; 
+    padding: 10px 20px; 
+    background-color: #fff; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer;
+
+}
+
+#pause button:hover {
+    background-color: #ddd; 
+}
