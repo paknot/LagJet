@@ -15,22 +15,15 @@ window.addEventListener('keyup', (e) => keys[e.key] = false);
 
 
 // Main world values
-const gravity = 0.09;         
-const thrustPower = 0.3;       
-const maxFallSpeed = 10;        
-const rotationSpeed = 0.018;   
-const maxSpeed = 3.6;            
+const gravity = 0.09;
+const thrustPower = 0.3;
+const maxFallSpeed = 10;
+const rotationSpeed = 0.018;
+const maxSpeed = 3.6;
 const roofHeight = 50;
 let score = 0;
-let survivalTimer = 0;    
+let survivalTimer = 0;
 
-// 50 points for every second survived
-setInterval(() => {
-    if (player.alive) {
-        score += 50; 
-        survivalTimer += 1;
-    }
-}, 1000);
 
 
 function displayScore() {
@@ -57,26 +50,26 @@ class Player {
         this.velocityY = 0;
         this.alive = true;
         this.lives = 3; // Set initial lives
-        
+
         // Load jet icon as an image
         this.jetImage = new Image();
-        this.jetImage.src = 'jet.png'; 
-        
+        this.jetImage.src = 'jet.png';
+
         // Load heart images
         this.fullHeartImage = new Image();
-        this.fullHeartImage.src = 'heart.png'; 
+        this.fullHeartImage.src = 'heart.png';
         this.emptyHeartImage = new Image();
         this.emptyHeartImage.src = 'emptyHeart.png';
     }
-    
+
     update() {
-        if (!this.alive) return; 
-        
+        if (!this.alive) return;
+
         if (keys['a']) this.angle -= rotationSpeed;
-        
+
         if (keys['d']) this.angle += rotationSpeed;
-        
-        
+
+
         if (keys['w']) {
             this.velocityX += Math.cos(this.angle) * thrustPower;
             this.velocityY += Math.sin(this.angle) * thrustPower;
@@ -84,7 +77,7 @@ class Player {
 
         // Apply gravity
         this.velocityY += gravity;
-        if (this.velocityY > maxFallSpeed) this.velocityY = maxFallSpeed; 
+        if (this.velocityY > maxFallSpeed) this.velocityY = maxFallSpeed;
 
         // Limit the maximum speed for the player
         let speed = Math.sqrt(this.velocityX * this.velocityX + this.velocityY * this.velocityY);
@@ -100,19 +93,19 @@ class Player {
         // Prevent player from going off the canvas sides or roof
         if (this.x < 0) {
             this.x = 0;
-            this.velocityX = 0; 
+            this.velocityX = 0;
         }
         if (this.x + this.width > canvas.width) {
             this.x = canvas.width - this.width;
-            this.velocityX = 0; 
+            this.velocityX = 0;
         }
-        if (this.y < roofHeight) { 
+        if (this.y < roofHeight) {
             this.y = roofHeight;
             this.velocityY = 0;
         }
         if (this.y + this.height > canvas.height) {
             this.y = canvas.height - this.height;
-            this.velocityY = 0; 
+            this.velocityY = 0;
         }
     }
 
@@ -131,7 +124,7 @@ class Player {
         ctx.restore();
     }
 
-    
+
 }
 
 // Initialize player
@@ -170,7 +163,7 @@ function updateBullets() {
     bullets.forEach((bullet, index) => {
         bullet.update();
         bullet.draw();
-        
+
         if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
             bullets.splice(index, 1);
         }
@@ -181,22 +174,22 @@ class Enemy {
     constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.width = 30; 
+        this.width = 30;
         this.height = 30;
-        this.speed = 1.7; 
+        this.speed = 1.0;
         this.health = 1;
-        this.angle = 0; 
-        this.velocityX = 0; 
-        this.velocityY = 0; 
-        this.thrustPower = 0.1; 
-        this.gravity = 0.05; 
-        this.maxSpeed = 2.5; 
+        this.angle = 0;
+        this.velocityX = 0;
+        this.velocityY = 0;
+        this.thrustPower = 0.1;
+        this.gravity = 0.05;
+        this.maxSpeed = 1.5;
 
         // Load missile image
         this.missileImage = new Image();
-        this.missileImage.src = 'missile.png'; 
+        this.missileImage.src = 'missile.png';
     }
-    
+
     update() {
         // Calculate angle towards the player
         const dx = player.x - this.x;
@@ -221,22 +214,22 @@ class Enemy {
         this.x += this.velocityX;
         this.y += this.velocityY;
 
-        
+
         if (this.x < 0) {
             this.x = 0;
-            this.velocityX = 0; 
+            this.velocityX = 0;
         }
         if (this.x + this.width > canvas.width) {
             this.x = canvas.width - this.width;
-            this.velocityX = 0; 
+            this.velocityX = 0;
         }
         if (this.y < 0) {
             this.y = 0;
-            this.velocityY = 0; 
+            this.velocityY = 0;
         }
         if (this.y + this.height > canvas.height) {
             this.y = canvas.height - this.height;
-            this.velocityY = 0; 
+            this.velocityY = 0;
         }
     }
 
@@ -252,37 +245,94 @@ class Enemy {
 
 
 // Spawning enemies every few seconds
-setInterval(() => {
-    let enemy;
-    let spawnX, spawnY;
-    let distance; 
+// setInterval(() => {
+//     let enemy;
+//     let spawnX, spawnY;
+//     let distance; 
 
-    do {
-        // Randomly choose spawn location outside the canvas
-        if (Math.random() < 0.5) { 
-            spawnX = Math.random() < 0.5 ? -50 : canvas.width + 50; 
-            spawnY = Math.random() * canvas.height; 
-        } else { // Spawn top/bottom
-            spawnY = Math.random() < 0.5 ? -50 : canvas.height + 50; 
-            spawnX = Math.random() * canvas.width; 
+//     do {
+//         // Randomly choose spawn location outside the canvas
+//         if (Math.random() < 0.5) { 
+//             spawnX = Math.random() < 0.5 ? -50 : canvas.width + 50; 
+//             spawnY = Math.random() * canvas.height; 
+//         } else { // Spawn top/bottom
+//             spawnY = Math.random() < 0.5 ? -50 : canvas.height + 50; 
+//             spawnX = Math.random() * canvas.width; 
+//         }
+
+//         // Create enemy instance
+//         enemy = new Enemy();
+
+//         // Set enemy's initial position
+//         enemy.x = spawnX;
+//         enemy.y = spawnY;
+
+//         // Calculate distance from the player
+//         const dx = player.x - enemy.x;
+//         const dy = player.y - enemy.y;
+//         distance = Math.sqrt(dx * dx + dy * dy); // Calculate distance here
+
+//     } while (distance < 500); 
+
+//     enemies.push(enemy);
+// }, 10000);
+
+let lastEnemySpawnTime = 0; // Track last spawn time
+const enemySpawnInterval = 10000; // 10 seconds
+
+function spawnRegularEnemies() {
+    const currentTime = Date.now();
+    if (currentTime - lastEnemySpawnTime >= enemySpawnInterval) {
+        let enemy;
+        let spawnX, spawnY;
+        let distance;
+
+        do {
+            // Randomly choose spawn location outside the canvas
+            if (Math.random() < 0.5) {
+                spawnX = Math.random() < 0.5 ? -50 : canvas.width + 50;
+                spawnY = Math.random() * canvas.height;
+            } else { // Spawn top/bottom
+                spawnY = Math.random() < 0.5 ? -50 : canvas.height + 50;
+                spawnX = Math.random() * canvas.width;
+            }
+
+            // Create enemy instance
+            enemy = new Enemy();
+
+            // Set enemy's initial position
+            enemy.x = spawnX;
+            enemy.y = spawnY;
+
+            // Calculate distance from the player
+            const dx = player.x - enemy.x;
+            const dy = player.y - enemy.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+        } while (distance < 500); // Ensure enough distance from the player
+
+        enemies.push(enemy);
+        lastEnemySpawnTime = currentTime; // Update last spawn time
+    }
+}
+
+// Spawn swarm enemies every 5 seconds
+let lastSwarmSpawnTime = 0; // Track last swarm spawn time
+const swarmSpawnInterval = 5000; // 5 seconds
+
+function spawnSwarmEnemies() {
+    const currentTime = Date.now();
+    if (currentTime - lastSwarmSpawnTime >= swarmSpawnInterval) {
+        for (let i = 0; i < 3; i++) {
+            const swarmEnemy = new SwarmEnemy();
+            swarmEnemy.x += Math.random() * 200 - 100;
+            swarmEnemy.y += Math.random() * 200 - 100;
+            enemies.push(swarmEnemy);
         }
+        lastSwarmSpawnTime = currentTime; // Update last swarm spawn time
+    }
+}
 
-        // Create enemy instance
-        enemy = new Enemy();
-
-        // Set enemy's initial position
-        enemy.x = spawnX;
-        enemy.y = spawnY;
-
-        // Calculate distance from the player
-        const dx = player.x - enemy.x;
-        const dy = player.y - enemy.y;
-        distance = Math.sqrt(dx * dx + dy * dy); // Calculate distance here
-        
-    } while (distance < 500); 
-
-    enemies.push(enemy);
-}, 10000);
 
 // Chunks
 class SwarmEnemy {
@@ -291,11 +341,11 @@ class SwarmEnemy {
         this.y = Math.random() < 0.5 ? -50 : canvas.height + 50;
         this.width = 50;
         this.height = 40;
-        this.speed = 1;
+        this.speed = 0.5;
         this.angle = 0;
         this.velocityX = 0;
         this.velocityY = 0;
-        this.health = 1; 
+        this.health = 1;
 
         // Load a separate image for SwarmEnemy
         this.image = new Image();
@@ -360,14 +410,14 @@ function checkBulletEnemyCollisions() {
 
 
 // Spawn SwarmEnemies
-setInterval(() => {
-    for (let i = 0; i < 3; i++) {
-        const swarmEnemy = new SwarmEnemy();
-        swarmEnemy.x += Math.random() * 200 - 100; 
-        swarmEnemy.y += Math.random() * 200 - 100;
-        enemies.push(swarmEnemy);
-    }
-}, 5000);
+// setInterval(() => {
+//     for (let i = 0; i < 3; i++) {
+//         const swarmEnemy = new SwarmEnemy();
+//         swarmEnemy.x += Math.random() * 200 - 100; 
+//         swarmEnemy.y += Math.random() * 200 - 100;
+//         enemies.push(swarmEnemy);
+//     }
+// }, 5000);
 
 // if two missiles colide
 function checkMissileCollisions() {
@@ -411,7 +461,7 @@ function handleSwarmEnemyBounce() {
                     if (distance < swarmEnemy.width) {
                         // Calculate bounce effect by pushing them away
                         const angle = Math.atan2(dy, dx);
-                        const bounceSpeed = 1; 
+                        const bounceSpeed = 1;
 
                         swarmEnemy.velocityX += Math.cos(angle) * bounceSpeed;
                         swarmEnemy.velocityY += Math.sin(angle) * bounceSpeed;
@@ -434,10 +484,10 @@ function handleSwarmEnemyRepulsion() {
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
                     // if to close, repulse
-                    const minDistance = enemies[i].width; 
+                    const minDistance = enemies[i].width;
                     if (distance < minDistance) {
                         const angle = Math.atan2(dy, dx);
-                        const repulsionForce = 0.5; 
+                        const repulsionForce = 0.5;
 
                         // Apply repulsive force to push them apart
                         enemies[i].x += Math.cos(angle) * repulsionForce;
@@ -495,16 +545,22 @@ function drawParticles(ctx) {
     particles.forEach(particle => particle.draw(ctx));
 }
 
+let lastScoreUpdateTime = Date.now(); // Track last score update time
+const scoreUpdateInterval = 1000; // Update score every second
 
+function updateScore() {
+    score += 10; // Increment score by 1 for demonstration
+}
 
 
 // Update enemies in the game loop
 function updateEnemies() {
+    if (isPaused) return;
     const enemiesToRemove = [];
     const bulletsToRemove = [];
 
-    checkMissileCollisions(); 
-    handleSwarmEnemyRepulsion(); 
+    checkMissileCollisions();
+    handleSwarmEnemyRepulsion();
 
     enemies.forEach((enemy, index) => {
         enemy.update();
@@ -530,7 +586,7 @@ function updateEnemies() {
                     } else if (enemy instanceof Enemy) {
                         score += 500; // 500 points for killing a regular enemy
                     }
-                    enemiesToRemove.push(index); 
+                    enemiesToRemove.push(index);
                 }
             }
         });
@@ -563,8 +619,8 @@ function updateEnemies() {
     });
 }
 // Pausing the game
-let isPaused = false;
-let pauseOverlay; // Variable to hold the pause overlay
+let isPaused = false; // Variable to track the pause state
+let pauseOverlay = null; // Variable to hold the pause overlay
 
 // Function to show the pause menu
 function showPauseMenu() {
@@ -577,35 +633,54 @@ function showPauseMenu() {
     pauseOverlay.style.width = '100%';
     pauseOverlay.style.height = '100%';
     pauseOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    pauseOverlay.style.color = 'white';
+    pauseOverlay.style.zIndex = 1000; // Ensure overlay is on top
     pauseOverlay.style.display = 'flex';
     pauseOverlay.style.flexDirection = 'column';
     pauseOverlay.style.alignItems = 'center';
     pauseOverlay.style.justifyContent = 'center';
-    pauseOverlay.style.fontSize = '30px';
-    pauseOverlay.innerHTML = `
-        <div id="pause">
-        Game Paused
-        <button id="resume">Continue</button>
-        <button id="restart">Restart</button>
-        </div>
-    `;
-    
+
+    // Add the overlay to the body
     document.body.appendChild(pauseOverlay);
 
-    // Event listeners for buttons
-    document.getElementById('resume').addEventListener('click', () => {
-        isPaused = false;
-        document.body.removeChild(pauseOverlay);
-        pauseOverlay = null; // Reset the pauseOverlay
-    });
+    // Create continue button
+    const continueButton = document.createElement('button');
+    continueButton.innerText = 'Continue';
+    continueButton.style.padding = '10px 20px';
+    continueButton.style.fontSize = '20px';
+    continueButton.onclick = () => {
+        isPaused = false; // Resume the game
+        document.body.removeChild(pauseOverlay); // Remove overlay
+        pauseOverlay = null; // Reset overlay variable
+    };
+    pauseOverlay.appendChild(continueButton);
 
-    document.getElementById('restart').addEventListener('click', () => {
-        restartGame();
-        document.body.removeChild(pauseOverlay);
-        pauseOverlay = null; // Reset the pauseOverlay 
-    });
+    // Create restart button
+    const restartButton = document.createElement('button');
+    restartButton.innerText = 'Restart';
+    restartButton.style.padding = '10px 20px';
+    restartButton.style.fontSize = '20px';
+    restartButton.onclick = () => {
+        location.reload(); // Restart the game
+    };
+    pauseOverlay.appendChild(restartButton);
 }
+
+// Listen for the pause key (e.g., 'p')
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        isPaused = !isPaused; // Toggle paused state
+        if (isPaused) {
+            showPauseMenu(); // Show the pause menu
+        } else {
+            if (pauseOverlay) {
+                document.body.removeChild(pauseOverlay); // Remove overlay
+                pauseOverlay = null; // Reset overlay variable
+            }
+        }
+    }
+});
+
+
 function restartGame() {
     // Reset player, score, and any other game variables
     player = new Player(canvas.width / 2, canvas.height / 2);
@@ -617,43 +692,60 @@ function restartGame() {
     player.alive = true; // Reset player state
 }
 
-// Handle escape key to toggle pause state
-window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        isPaused = !isPaused; // Toggle pause state
-        if (isPaused) {
-            showPauseMenu();
-        } else if (pauseOverlay) {
-            document.body.removeChild(pauseOverlay); // Remove overlay if it's still there
-            pauseOverlay = null; // Reset the pauseOverlay variable
-        }
-    }
-});
+function displayLives() {
+    ctx.font = "20px Arial";
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
 
+    // Draw hearts for lives
+    for (let i = 0; i < player.lives; i++) {
+        ctx.drawImage(player.fullHeartImage, 10 + i * 30, 10, 25, 25); // Adjust positions as needed
+    }
+    for (let i = player.lives; i < 3; i++) {
+        ctx.drawImage(player.emptyHeartImage, 10 + i * 30, 10, 25, 25); // Adjust positions as needed
+    }
+}
+
+
+let gameStartTime = Date.now(); // Track game start time
+const spawnDelay = 3000; // Delay in milliseconds (e.g., 3000ms = 3 seconds)
+let isGameStarted = false; // Flag to check if the game has started
+
+function spawnEnemies() {
+    // Start spawning enemies only after the delay
+    if (Date.now() - gameStartTime >= spawnDelay) {
+        spawnRegularEnemies();
+        spawnSwarmEnemies();
+    }
+}
 // Game loop
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     // First, handle particles
     updateParticles();
     drawParticles(ctx);
 
     // Only update and draw game objects if not paused
     if (!isPaused) {
+        updateEnemies();
         // Update player and enemies
         if (player.alive) {
             player.update();
             player.draw();
-
-            // Draw hearts to represent player lives
-            for (let i = 0; i < 3; i++) {
-                const heartImage = (i < player.lives) ? player.fullHeartImage : player.emptyHeartImage;
-                ctx.drawImage(heartImage, 10 + (i * 40), 10, 30, 30);
-            }
+            spawnEnemies();
+            displayLives()
 
             // Update bullets and enemies
             updateBullets();
             updateEnemies();
+
+            const currentTime = Date.now();
+            if (currentTime - lastScoreUpdateTime >= scoreUpdateInterval) {
+                updateScore(); // Update score
+                lastScoreUpdateTime = currentTime; // Reset the timer
+            }
         }
 
         displayScore(); // Display the score
