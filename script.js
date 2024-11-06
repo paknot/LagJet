@@ -9,24 +9,17 @@ canvas.height = window.innerHeight;
 
 // Music & sound effects
 
-const backgroundMusic = new Audio('background.mp3');
+const backgroundMusic = new Audio('Assets/background.mp3');
 backgroundMusic.volume = 0.4;
 backgroundMusic.loop = true;
 
-const ggs = new Audio('GameOver.mp3');
+const ggs = new Audio('Assets/GameOver.mp3');
 
-const prepare = new Audio('PrepareForAction.mp3');
+const prepare = new Audio('Assets/PrepareForAction.mp3');
 prepare.volume=0.9;
 prepare.play();
 
 backgroundMusic.pause();
-
-prepare.onended = () => {
-    backgroundMusic.play();
-};
-
-
-
 
 
 // Play the background music
@@ -50,7 +43,6 @@ const rotationSpeed = 0.018;
 const maxSpeed = 3.6;
 const roofHeight = 50;
 let score = 0;
-let survivalTimer = 0;
 
 
 
@@ -81,13 +73,13 @@ class Player {
 
         // Load jet icon as an image
         this.jetImage = new Image();
-        this.jetImage.src = 'jet.png';
+        this.jetImage.src = 'Assets/jet.png';
 
         // Load heart images
         this.fullHeartImage = new Image();
-        this.fullHeartImage.src = 'heart.png';
+        this.fullHeartImage.src = 'Assets/heart.png';
         this.emptyHeartImage = new Image();
-        this.emptyHeartImage.src = 'emptyHeart.png';
+        this.emptyHeartImage.src = 'Assets/emptyHeart.png';
     }
 
     update() {
@@ -183,6 +175,8 @@ class Bullet {
 window.addEventListener('keydown', (e) => {
     if (e.key === ' ') {
         bullets.push(new Bullet(player.x, player.y, player.angle));
+        const shoot = new Audio('Assets/shoot.mp3');
+        shoot.play();
     }
 });
 
@@ -215,7 +209,7 @@ class Enemy {
 
         // Load missile image
         this.missileImage = new Image();
-        this.missileImage.src = 'missile.png';
+        this.missileImage.src = 'Assets/missile.png';
     }
 
     update() {
@@ -302,6 +296,9 @@ function spawnRegularEnemies() {
             const dy = player.y - enemy.y;
             distance = Math.sqrt(dx * dx + dy * dy);
 
+            const missileDetected = new Audio('Assets/MissileDetected.mp3');
+            missileDetected.play();
+
         } while (distance < 500); // Ensure enough distance from the player
 
         enemies.push(enemy);
@@ -342,7 +339,7 @@ class SwarmEnemy {
 
         // Load a separate image for SwarmEnemy
         this.image = new Image();
-        this.image.src = 'swarmEnemy.png';
+        this.image.src = 'Assets/swarmEnemy.png';
     }
 
     update() {
@@ -358,6 +355,12 @@ class SwarmEnemy {
         // Move towards the player with limited guidance
         this.velocityX = Math.cos(this.angle) * this.speed;
         this.velocityY = Math.sin(this.angle) * this.speed;
+        
+        if (this.y - this.height / 2 < 0) { // Top boundary
+            this.y = this.height / 2;
+        } else if (this.y + this.height / 2 > canvas.height) { // Bottom boundary
+            this.y = canvas.height - this.height / 2;
+        }
 
         this.x += this.velocityX;
         this.y += this.velocityY;
@@ -420,8 +423,8 @@ function checkMissileCollisions() {
                         particles.push(new Particle(collisionX, collisionY, 'orange'));
                     }
 
-                    score += 1000;
-                    const explosion = new Audio('explosion.mp3');
+                    score += 660;
+                    const explosion = new Audio('Assets/explosion.mp3');
                     explosion.volume = 0.5;
                     explosion.play();
 
@@ -536,7 +539,7 @@ let lastScoreUpdateTime = Date.now();
 const scoreUpdateInterval = 1000; 
 
 function updateScore() {
-    score += 10; 
+    score += 20; 
 }
 
 
@@ -570,12 +573,12 @@ function updateEnemies() {
                 if (enemy.health <= 0) {
                     if (enemy instanceof SwarmEnemy) {
                         score += 100; // 100 points for killing a SwarmEnemy
-                        const kill = new Audio('pop.mp3');
+                        const kill = new Audio('Assets/pop.mp3');
                         kill.volume =0.45;
                         kill.play();
                     } else if (enemy instanceof Enemy) {
-                        score += 500; // 500 points for killing a regular enemy
-                        const kill = new Audio('pop.mp3');
+                        score += 300; // 300 points for killing a regular enemy
+                        const kill = new Audio('Assets/pop.mp3');
                         kill.volume =0.45;
                         kill.play();
                     }
@@ -591,13 +594,17 @@ function updateEnemies() {
         if (distance < player.width / 2 + enemy.width / 2) {
             if (enemy instanceof SwarmEnemy || enemy instanceof Enemy) {
                 player.lives -= 1; // Decrement player's life on collision with any enemy
-                enemiesToRemove.push(index); // Remove enemy on collision with player
+                enemiesToRemove.push(index); 
+
+                const attention = new Audio('Assets/Warning.mp3');
+                attention.play();
 
                 for (let k = 0; k < 20; k++) {
                     particles.push(new Particle(player.x, player.y + player.height / 2, 'red')); // Red particles slightly below player
                 }
 
                 if (player.lives <= 0) {
+                    attention.pause();
                     player.alive = false;
                 }
             }
@@ -667,6 +674,7 @@ window.addEventListener('keydown', (e) => {
             }
         }
     }
+    
 });
 
 
@@ -676,7 +684,6 @@ function restartGame() {
     bullets = [];
     enemies = [];
     score = 0;
-    survivalTimer = 0;
     player.lives = 3; // Reset lives
     player.alive = true; // Reset player state
 }
