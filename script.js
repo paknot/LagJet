@@ -392,6 +392,8 @@ function checkMissileCollisions() {
                         particles.push(new Particle(collisionX, collisionY, 'orange'));
                     }
 
+                    score += 1000;
+
                     // Destroy both missiles
                     enemies.splice(j, 1);
                     enemies.splice(i, 1);
@@ -560,7 +562,6 @@ function updateEnemies() {
 
                 if (player.lives <= 0) {
                     player.alive = false;
-                    alert(`Game Over! Final Score: ${score}`); // Show final score when player dies
                 }
             }
         }
@@ -668,6 +669,14 @@ function spawnEnemies() {
         spawnSwarmEnemies();
     }
 }
+
+function handleGameOver() {
+    alert("Game over! Your score: " + score);
+    let playAgain = confirm("Would you like to play again?");
+    if (playAgain) {
+        location.reload(); 
+    }
+}
 // Game loop
 function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -694,7 +703,11 @@ function gameLoop() {
             if (currentTime - lastScoreUpdateTime >= scoreUpdateInterval) {
                 updateScore(); // Update score
                 lastScoreUpdateTime = currentTime; // Reset the timer
-            }
+            } 
+        }
+        else{
+            handleGameOver();
+            return;
         }
 
         displayScore(); // Display the score
