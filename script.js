@@ -6,6 +6,34 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+
+// Music & sound effects
+
+const backgroundMusic = new Audio('background.mp3');
+backgroundMusic.volume = 0.4;
+backgroundMusic.loop = true;
+
+const ggs = new Audio('GameOver.mp3');
+
+const prepare = new Audio('PrepareForAction.mp3');
+prepare.volume=0.9;
+prepare.play();
+
+backgroundMusic.pause();
+
+prepare.onended = () => {
+    backgroundMusic.play();
+};
+
+
+
+
+
+// Play the background music
+backgroundMusic.play().catch(error => {
+    console.log("Music couldn't play automatically due to browser restrictions:", error);
+});
+
 // Game variables
 let player, bullets = [], enemies = [], keys = {};
 
@@ -393,6 +421,9 @@ function checkMissileCollisions() {
                     }
 
                     score += 1000;
+                    const explosion = new Audio('explosion.mp3');
+                    explosion.volume = 0.5;
+                    explosion.play();
 
                     // Destroy both missiles
                     enemies.splice(j, 1);
@@ -500,12 +531,12 @@ function updateParticles() {
 function drawParticles(ctx) {
     particles.forEach(particle => particle.draw(ctx));
 }
-
-let lastScoreUpdateTime = Date.now(); // Track last score update time
-const scoreUpdateInterval = 1000; // Update score every second
+// Update score every second
+let lastScoreUpdateTime = Date.now(); 
+const scoreUpdateInterval = 1000; 
 
 function updateScore() {
-    score += 10; // Increment score by 1 for demonstration
+    score += 10; 
 }
 
 
@@ -539,8 +570,14 @@ function updateEnemies() {
                 if (enemy.health <= 0) {
                     if (enemy instanceof SwarmEnemy) {
                         score += 100; // 100 points for killing a SwarmEnemy
+                        const kill = new Audio('pop.mp3');
+                        kill.volume =0.45;
+                        kill.play();
                     } else if (enemy instanceof Enemy) {
                         score += 500; // 500 points for killing a regular enemy
+                        const kill = new Audio('pop.mp3');
+                        kill.volume =0.45;
+                        kill.play();
                     }
                     enemiesToRemove.push(index);
                 }
@@ -621,10 +658,12 @@ window.addEventListener('keydown', (e) => {
         isPaused = !isPaused; // Toggle paused state
         if (isPaused) {
             showPauseMenu(); // Show the pause menu
+            backgroundMusic.pause();
         } else {
             if (pauseOverlay) {
                 document.body.removeChild(pauseOverlay); // Remove overlay
                 pauseOverlay = null; // Reset overlay variable
+                backgroundMusic.play();
             }
         }
     }
@@ -671,6 +710,8 @@ function spawnEnemies() {
 }
 
 function handleGameOver() {
+    backgroundMusic.pause();
+    ggs.play();
     alert("Game over! Your score: " + score);
     let playAgain = confirm("Would you like to play again?");
     if (playAgain) {
