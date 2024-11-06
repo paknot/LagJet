@@ -242,41 +242,6 @@ class Enemy {
     }
 }
 
-
-
-// Spawning enemies every few seconds
-// setInterval(() => {
-//     let enemy;
-//     let spawnX, spawnY;
-//     let distance; 
-
-//     do {
-//         // Randomly choose spawn location outside the canvas
-//         if (Math.random() < 0.5) { 
-//             spawnX = Math.random() < 0.5 ? -50 : canvas.width + 50; 
-//             spawnY = Math.random() * canvas.height; 
-//         } else { // Spawn top/bottom
-//             spawnY = Math.random() < 0.5 ? -50 : canvas.height + 50; 
-//             spawnX = Math.random() * canvas.width; 
-//         }
-
-//         // Create enemy instance
-//         enemy = new Enemy();
-
-//         // Set enemy's initial position
-//         enemy.x = spawnX;
-//         enemy.y = spawnY;
-
-//         // Calculate distance from the player
-//         const dx = player.x - enemy.x;
-//         const dy = player.y - enemy.y;
-//         distance = Math.sqrt(dx * dx + dy * dy); // Calculate distance here
-
-//     } while (distance < 500); 
-
-//     enemies.push(enemy);
-// }, 10000);
-
 let lastEnemySpawnTime = 0; // Track last spawn time
 const enemySpawnInterval = 10000; // 10 seconds
 
@@ -407,17 +372,6 @@ function checkBulletEnemyCollisions() {
         }
     }
 }
-
-
-// Spawn SwarmEnemies
-// setInterval(() => {
-//     for (let i = 0; i < 3; i++) {
-//         const swarmEnemy = new SwarmEnemy();
-//         swarmEnemy.x += Math.random() * 200 - 100; 
-//         swarmEnemy.y += Math.random() * 200 - 100;
-//         enemies.push(swarmEnemy);
-//     }
-// }, 5000);
 
 // if two missiles colide
 function checkMissileCollisions() {
@@ -600,6 +554,10 @@ function updateEnemies() {
                 player.lives -= 1; // Decrement player's life on collision with any enemy
                 enemiesToRemove.push(index); // Remove enemy on collision with player
 
+                for (let k = 0; k < 20; k++) {
+                    particles.push(new Particle(player.x, player.y + player.height / 2, 'red')); // Red particles slightly below player
+                }
+
                 if (player.lives <= 0) {
                     player.alive = false;
                     alert(`Game Over! Final Score: ${score}`); // Show final score when player dies
@@ -627,17 +585,9 @@ function showPauseMenu() {
     if (pauseOverlay) return; // Prevent multiple overlays
 
     pauseOverlay = document.createElement('div');
-    pauseOverlay.style.position = 'absolute';
-    pauseOverlay.style.top = 0;
-    pauseOverlay.style.left = 0;
-    pauseOverlay.style.width = '100%';
-    pauseOverlay.style.height = '100%';
-    pauseOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-    pauseOverlay.style.zIndex = 1000; // Ensure overlay is on top
-    pauseOverlay.style.display = 'flex';
-    pauseOverlay.style.flexDirection = 'column';
-    pauseOverlay.style.alignItems = 'center';
-    pauseOverlay.style.justifyContent = 'center';
+    pauseOverlay.id = 'pauseOverlay';
+    pauseOverlay.innerText = 'Game Over';
+    
 
     // Add the overlay to the body
     document.body.appendChild(pauseOverlay);
@@ -645,8 +595,8 @@ function showPauseMenu() {
     // Create continue button
     const continueButton = document.createElement('button');
     continueButton.innerText = 'Continue';
-    continueButton.style.padding = '10px 20px';
-    continueButton.style.fontSize = '20px';
+    continueButton.id = 'continue';
+
     continueButton.onclick = () => {
         isPaused = false; // Resume the game
         document.body.removeChild(pauseOverlay); // Remove overlay
@@ -657,8 +607,7 @@ function showPauseMenu() {
     // Create restart button
     const restartButton = document.createElement('button');
     restartButton.innerText = 'Restart';
-    restartButton.style.padding = '10px 20px';
-    restartButton.style.fontSize = '20px';
+    restartButton.id = 'restart';
     restartButton.onclick = () => {
         location.reload(); // Restart the game
     };
@@ -708,9 +657,9 @@ function displayLives() {
 }
 
 
-let gameStartTime = Date.now(); // Track game start time
-const spawnDelay = 3000; // Delay in milliseconds (e.g., 3000ms = 3 seconds)
-let isGameStarted = false; // Flag to check if the game has started
+let gameStartTime = Date.now(); 
+const spawnDelay = 3000;
+let isGameStarted = false; 
 
 function spawnEnemies() {
     // Start spawning enemies only after the delay

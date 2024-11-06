@@ -13,7 +13,7 @@ body {
     background-position: center;
     background-repeat: no-repeat;
   }
-  #pause {
+  #pauseOverlay {
     position: fixed; 
     top: 50%; 
     left: 50%; 
@@ -22,21 +22,30 @@ body {
     color: white; 
     border-radius: 10px; 
     text-align: center; 
-    z-index: 1000; 
-    padding: 10px 20px;
+    z-index: 1; 
+    padding: 30px 30px;
+    font-size: 24px;
 }
 
-#pause button {
+#pauseOverlay button {
     display: block; 
-    margin: 10px 23%; 
     padding: 10px 20px; 
-    background-color: #fff; 
     border: none; 
-    border-radius: 5px; 
+    margin-top: 10px;
+    border-radius: 8px; 
     cursor: pointer;
-
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
 }
 
-#pause button:hover {
-    background-color: #ddd; 
+#restart{
+  margin-left: 15%;
+
+}
+#continue{
+  margin-left: 10%;
+}
+
+#pauseOverlay button:hover {
+  background-color: rgba(0, 0, 0, 0.4);
 }
